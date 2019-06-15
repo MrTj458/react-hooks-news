@@ -12,13 +12,34 @@ function LinkItem({ link, index, showCount, history }) {
       history.push('/login')
     } else {
       const voteRef = firebase.db.collection('links').doc(link.id)
+
       voteRef.get().then(doc => {
         if (doc.exists) {
-          const previousVotes = doc.data().votes
-          const vote = { votedBy: { id: user.uid, name: user.displayName } }
-          const updatedVotes = [...previousVotes, vote]
-          const voteCount = updatedVotes.length
-          voteRef.update({ votes: updatedVotes, voteCount })
+          let alreadyVoted = false
+
+          // check if user has already voted for this link
+          doc.data().votes.forEach(vote => {
+            if (vote.votedBy.id === user.uid) {
+              alreadyVoted = true
+            }
+          })
+
+          if (alreadyVoted) {
+            // un-vote
+            const previousVotes = doc.data().votes
+            const updatedVotes = previousVotes.filter(
+              vote => vote.votedBy.id !== user.uid
+            )
+            const voteCount = updatedVotes.length
+            voteRef.update({ votes: updatedVotes, voteCount })
+          } else {
+            // vote
+            const previousVotes = doc.data().votes
+            const vote = { votedBy: { id: user.uid, name: user.displayName } }
+            const updatedVotes = [...previousVotes, vote]
+            const voteCount = updatedVotes.length
+            voteRef.update({ votes: updatedVotes, voteCount })
+          }
         }
       })
     }
