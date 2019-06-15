@@ -7,7 +7,6 @@ import { LINKS_PER_PAGE } from '../../utils'
 function LinkList(props) {
   const { firebase } = React.useContext(FirebaseContext)
   const [links, setLinks] = React.useState([])
-  const [cursor, setCursor] = React.useState(null)
   const [loading, setLoading] = React.useState(false)
   const isNewPage = props.location.pathname.includes('new')
   const isTopPage = props.location.pathname.includes('top')
@@ -21,22 +20,10 @@ function LinkList(props) {
 
   function getLinks() {
     setLoading(true)
-    const hasCursor = Boolean(cursor)
 
     if (isTopPage) {
       return linksRef
         .orderBy('voteCount', 'desc')
-        .limit(LINKS_PER_PAGE)
-        .onSnapshot(handleSnapshot)
-    } else if (page === 1) {
-      return linksRef
-        .orderBy('created', 'desc')
-        .limit(LINKS_PER_PAGE)
-        .onSnapshot(handleSnapshot)
-    } else if (hasCursor) {
-      return linksRef
-        .orderBy('created', 'desc')
-        .startAfter(cursor.created)
         .limit(LINKS_PER_PAGE)
         .onSnapshot(handleSnapshot)
     } else {
@@ -47,9 +34,7 @@ function LinkList(props) {
         )
         .then(response => {
           const links = response.data
-          const lastLink = links[links.length - 1]
           setLinks(links)
-          setCursor(lastLink)
           setLoading(false)
         })
       return () => {}
@@ -61,8 +46,6 @@ function LinkList(props) {
       return { id: doc.id, ...doc.data() }
     })
     setLinks(links)
-    const lastLink = links[links.length - 1]
-    setCursor(lastLink)
     setLoading(false)
   }
 
