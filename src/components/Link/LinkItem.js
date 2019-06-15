@@ -15,13 +15,9 @@ function LinkItem({ link, index, showCount, history }) {
 
       voteRef.get().then(doc => {
         if (doc.exists) {
-          let alreadyVoted = false
-
           // check if user has already voted for this link
-          doc.data().votes.forEach(vote => {
-            if (vote.votedBy.id === user.uid) {
-              alreadyVoted = true
-            }
+          const alreadyVoted = doc.data().votes.some(vote => {
+            return vote.votedBy.id === user.uid
           })
 
           if (alreadyVoted) {
